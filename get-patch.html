@@ -45,18 +45,19 @@ float noise(vec2 signal) {
     vec2 u = f*f*(3.0-2.0*f);
 
     //mix function interpolates the 2 vectors, dot takes their dot product
-    return mix( mix( dot( random2(i + vec2(0.0,0.0) ), f - vec2(0.0,0.0) ),
-                     dot( random2(i + vec2(1.0,0.0) ), f - vec2(1.0,0.0) ), u.x),
-                mix( dot( random2(i + vec2(0.0,1.0) ), f - vec2(0.0,1.0) ),
-                     dot( random2(i + vec2(1.0,1.0) ), f - vec2(1.0,1.0) ), u.x), u.y);
+    return mix( mix( dot( random2(integer + vec2(0.0,0.0) ), float - vec2(0.0,0.0) ),
+                     dot( random2(integer + vec2(1.0,0.0) ), float - vec2(1.0,0.0) ), u.x),
+                mix( dot( random2(integer + vec2(0.0,1.0) ), float - vec2(0.0,1.0) ),
+                     dot( random2(integer + vec2(1.0,1.0) ), float - vec2(1.0,1.0) ), u.x), u.y);
 }
 
-void main() {
+void main()
+{
     vec2 signal = gl_FragCoord.xy/u_resolution.xy;  //noise signal
     st.x *= u_resolution.x/u_resolution.y;          //
     vec3 color = vec3(0.0);
 
-    vec2 pos = vec2(st*10.0);
+    vec2 pos = vec2(signal*10.0);
 
     color = vec3(noise(pos)*.5+.5);
 
