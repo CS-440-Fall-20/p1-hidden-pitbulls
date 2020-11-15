@@ -29,17 +29,39 @@ window.onload = function init()
     viewingMode = 2;
     shadingMode = 2;
 
-    LoadTerrain();
+    _LoadTerrain();
 };
 
+function _get_patch() 
+{
+    float xmin = -1.0;
+    float xmax = 1.0;
+    float zmin = -1.0;
+    float zmax = 1.0;
 
-function LoadTerrain()
+    var vertices = [];
+
+    var size = 0.08;
+    var initialXmin = xmin;
+    while (zmin <= zmax) {
+        while (xmin <= xmax) {
+            vertices.push(vec3(xmin, 0, zmin));
+            vertices.push(vec3(xmin, 0, zmin + size));
+            vertices.push(vec3(xmin, 0, zmin + size));
+            vertices.push(vec3(xmin + size, 0, zmin));
+            vertices.push(vec3(xmin + size, 0, zmin));
+            vertices.push(vec3(xmin, 0, zmin));
+            xmin += size;
+        }
+        xmin = initialXmin;
+        zmin += size;
+    }
+}
+
+function _LoadTerrain()
 // Function to load the terrain onto the GPU
 {
-    var vertices =
-    [ 
-        // mesh comes here
-    ];
+    var vertices = _get_patch();
 
     // Loading the vertices into the GPU using vertex buffer
     var vertexBuffer = gl.createBuffer();

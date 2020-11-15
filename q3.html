@@ -7,9 +7,11 @@
     <script id="vertex-shader" type="x-shader/x-vertex">
         attribute vec3 position;
         attribute vec3 normal;
-        uniform mat4 projection, modelview, normalMat;
+        attribute mat4 projection, modelview, normalMat; // not sure what these are for
+        
         varying vec3 normalInterp;
-        varying vec3 vertPos;
+        varying vec3 vertPos; // Vertex position
+        varying vec3 planePos; // Plane position
 
         void main()
         {
@@ -22,81 +24,58 @@
 
     <script id="fragment-shader" type="x-shader/x-fragment">
         precision mediump float;
-
+        
         varying vec3 normalInterp; // Surface normal
         varying vec3 vertPos; // Vertex position
+        varying vec3 planePos; // Plane position
+        // uniform vec3 lightPos; // Light position 
         
-        uniform vec3 planePos; // Plane position 
-        uniform int mode; // Rendering mode
+        uniform int shadingMode;
         
-        uniform vec3 lightPos; // Light position
-
-        vec3 AmbientC(y) 
-        {
-            if (y < 0.0) return vec3(0.0, 0.8); // Water
-            else if (y < 0.1) return vec3(1.0, 0.8, 0.6); // Beach
-            else if (y < 0.2) return vec3(0.0, 0.8, 0.4); // Forest
-            else if (y < 0.4) return vec3(0.0, 0.6, 0.0); // Jungle
-            else if (y < 0.6) return vec3(0.6, 0.8, 0.0); // Savannah
-            else if (y < 0.8) return vec3(0.8, 0.6, 0.0); // Desert
-            else return (1.0, 1.0, 1,0); // Snow
-        }
-
-        float Shininess(y) 
-        {
-            if (y < 0.0) return 80.0; // Water
-            else if (y < 0.6) return 0.0; // Beach to savannah
-            else return 20.0; // Desert to snow
-        }
-
-        float Ks(y)
-        {
-            if (y < 0.0) return 1.0; // Water
-            else if (y < 0.6) return 0.0; // Beach to savannah
-            else return 0.4; // Desert to snow    
-        }        
-
-
+        // uniform float Ka; // Ambient reflection coefficient
+        // uniform float Kd; // Diffuse reflection coefficient
+        uniform float Ks; // Specular reflection coefficient
+        uniform float shininess;
+        
+        // Material color
+        uniform vec3 ambientColor;
+        // uniform vec3 diffuseColor; // White
+        // uniform vec3 specularColor; // White
+        
         void main() 
         {
-            float y = vertPos.y;
-
-            // Material Color
-            vec3 ambientColor = AmbientC(y);
-            vec3 diffuseColor = vec3(1.0, 1.0, 1.0); // White
-            vec3 specularColor = vec3(1.0, 1.0, 1.0); // White
-
-            vec3 N = normalize(normalInterp); // Normal vector 
-            vec3 L = normalize(lightPos - vertPos); // Vector to light source
-
-            // Lambert's cosine law
+            // Computing Lambertian term
+            vec3 N = normalize(normalInterp); // Normal vector
+            // Light Position = vec3(1.0, 1.0, 1.0)
+            vec3 L = normalize(vec3(1.0, 1.0, 1.0) - vertPos); // Vector to light source
             float lambertian = max(dot(N, L), 0.0);
-            float specular = 0.0;
-
+            
+            // Computing specular term
             vec3 R = reflect(-L, N); // Reflected light vector
-            vec3 V = normalize(planePos -vertPos); // Vector to viewer/plane
-            // Compute the specular term
+            vec3 V = normalize(planePos - vertPos); // Vector to viewer/plane           
             float specAngle = max(dot(R, V), 0.0);
-            specular = pow(specAngle, Shininess(y)); 
+            float specular = pow(specAngle, shininess); 
         
-            if (mode == 1) 
+            if (shadingMode == 0) 
             // Flat - only ambient
             {
                 // Ambient reflection coefficient = 1.0
                 gl_FragColor = vec4(ambientColor, 1.0);
             }
 
-            else if (mode == 2)
+            else if (shadingMode == 1)
             // Smooth  - ambient and specular
             {
-                gl_FragColor = vec4(Ks(y) * lambertian * diffuseColor, 1.0);  
+                // Specular color = white
+                gl_FragColor = vec4(Ks * lambertian * vec3(1.0, 1.0, 1.0), 1.0);  
             } 
 
             else 
             // Phong - all 3 components
             {
                 // Diffuse reflection coefficient = 0.2
-                gl_FragColor = vec4(0.2 * specular * specularColor, 1.0);
+                // Diffuse color = white 
+                gl_FragColor = vec4(0.2 * specular * vec3(1.0, 1.0, 1.0), 1.0);
             }
         }
 
@@ -105,11 +84,11 @@
     <script type="text/javascript" src="https://www.cs.unm.edu/~angel/BOOK/INTERACTIVE_COMPUTER_GRAPHICS/SEVENTH_EDITION/CODE/Common/webgl-utils.js"></script>
     <script type="text/javascript" src="https://www.cs.unm.edu/~angel/BOOK/INTERACTIVE_COMPUTER_GRAPHICS/SEVENTH_EDITION/CODE/Common/initShaders.js"></script>
     <script type="text/javascript" src="https://www.cs.unm.edu/~angel/BOOK/INTERACTIVE_COMPUTER_GRAPHICS/SEVENTH_EDITION/CODE/Common/MV.js"></script>
-    <script type="text/javascript" src="q4.js"></script>
+    <script type="text/javascript" src="q3.js"></script>
 </head>
 
 <body>
-    
+    <input onkeypress="KeyPressEvent(event)">    
 
     <canvas id="gl-canvas" width="512" height="512">
         Your browser does not support HTML5.
