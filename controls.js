@@ -66,8 +66,9 @@ function draw() {
 }
 
 function get_patch(xmin, xmax, zmin, zmax) {
-	var size = 0.08;
+	var size = 0.05;
 	var initialXmin = xmin;
+	noise.seed(9);
 	while (zmin <= zmax) {
 		while (xmin <= xmax) {
 			vertices.push(vec3(xmin, 0, zmin));
@@ -86,6 +87,9 @@ function get_patch(xmin, xmax, zmin, zmax) {
 		}
 		xmin = initialXmin;
 		zmin += size;
+	}
+	for (var i=2; i < vertices.length - 2; i++){
+		vertices[i-2][1] = noise.perlin2(vertices[i-2][0], vertices[i-2][2]);
 	}
 }
 
