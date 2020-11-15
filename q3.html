@@ -6,7 +6,7 @@
 
     <script id="vertex-shader" type="x-shader/x-vertex">
         attribute vec3 position;
-        attribute vec3 normal;
+        attribute vec3 normal; // where
         attribute mat4 projection, modelview, normalMat; // not sure what these are for
         
         varying vec3 normalInterp;
@@ -20,6 +20,7 @@
             normalInterp = vec3(normalMat * vec4(normal, 0.0));
             gl_Position = projection * vertPos4;
         }
+    
     </script>
 
     <script id="fragment-shader" type="x-shader/x-fragment">
@@ -27,7 +28,6 @@
         
         varying vec3 normalInterp; // Surface normal
         varying vec3 vertPos; // Vertex position
-        varying vec3 planePos; // Plane position
         // uniform vec3 lightPos; // Light position 
         
         uniform int shadingMode;
@@ -52,7 +52,7 @@
             
             // Computing specular term
             vec3 R = reflect(-L, N); // Reflected light vector
-            vec3 V = normalize(planePos - vertPos); // Vector to viewer/plane           
+            vec3 V = normalize(- vertPos); // Vector to viewer/plane at origin           
             float specAngle = max(dot(R, V), 0.0);
             float specular = pow(specAngle, shininess); 
         
@@ -84,13 +84,14 @@
     <script type="text/javascript" src="https://www.cs.unm.edu/~angel/BOOK/INTERACTIVE_COMPUTER_GRAPHICS/SEVENTH_EDITION/CODE/Common/webgl-utils.js"></script>
     <script type="text/javascript" src="https://www.cs.unm.edu/~angel/BOOK/INTERACTIVE_COMPUTER_GRAPHICS/SEVENTH_EDITION/CODE/Common/initShaders.js"></script>
     <script type="text/javascript" src="https://www.cs.unm.edu/~angel/BOOK/INTERACTIVE_COMPUTER_GRAPHICS/SEVENTH_EDITION/CODE/Common/MV.js"></script>
+    <script type="text/javascript" src="perlin.js"></script>
     <script type="text/javascript" src="q3.js"></script>
 </head>
 
 <body>
     <input onkeypress="KeyPressEvent(event)">    
 
-    <canvas id="gl-canvas" width="512" height="512">
+    <canvas id="gl-canvas" width="800" height="600">
         Your browser does not support HTML5.
     </canvas>
 </body>

@@ -2,12 +2,22 @@ var gl;
 var program;
 int viewingMode;
 int shadingMode;
+var vertices;
+var near = 0.5;
+var far = 250.0;
+var radius = 6.0;
+var theta = 55.0;
+var phi = 50;
+var fov = 50;
+var acc = 0.05;
+var aspect;
 
 window.onload = function init() 
 // Initialization
 {    
     // Getting canvas from HTML
     var canvas = document.getElementById("gl-canvas");
+    aspect = canvas.width / canvas.height;
 
     // Setting up WebGl
     gl = WebGLUtils.setupWebGL(canvas);
@@ -18,8 +28,8 @@ window.onload = function init()
 
     // Setting up the view
     gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor(1.0, 1.0, 1.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.clearColor(0.2, 0.4, 0.8, 1.0); // Sky color
+    gl.enable(gl.DEPTH_TEST);
 
     // Loading shaders
     program = initShaders(gl, "vertex-shader", "fragment-shader");
@@ -30,15 +40,44 @@ window.onload = function init()
     shadingMode = 2;
 
     _LoadTerrain();
+    _FrameRender();
+
 };
+
+function get_patch(xmin, xmax, zmin, zmax) 
+// Function to generate terrain
+{
+    var size = 0.05;
+    var initialXmin = xmin;
+    noise.seed(9);
+    
+    while (zmin <= zmax) 
+    {
+        while (xmin <= xmax) 
+        {
+            vertices.push(vec3(xmin, 0, zmin));
+            vertices.push(vec3(xmin, 0, zmin + size));
+            vertices.push(vec3(xmin, 0, zmin + size));
+            vertices.push(vec3(xmin + size, 0, zmin));
+            vertices.push(vec3(xmin + size, 0, zmin));
+            vertices.push(vec3(xmin, 0, zmin));
+            xmin += size;
+        }
+        
+        xmin = initialXmin;
+        zmin += size;
+    }
+    
+    for (var i = 2; i < vertices.length - 2; i++) 
+    {
+        vertices[i - 2][1] = noise.perlin2(vertices[i - 2][0], vertices[i - 2][2]);
+    }
+}
 
 function _LoadTerrain()
 // Function to load the terrain onto the GPU
 {
-    var vertices =
-    [ 
-        // mesh comes here
-    ];
+    get_patch(-10, 10, -10, 10); // -10 to 10 on both x and z axis 
 
     // Loading the vertices into the GPU using vertex buffer
     var vertexBuffer = gl.createBuffer();
@@ -51,7 +90,7 @@ function _LoadTerrain()
     gl.enableVertexAttribArray(position);
 
     // Getting ambient colors based on y values
-    var ambientColors = _GetAmbientColors(vertices);
+    var ambientColors = _GetAmbientColors();
 
     // Loading the ambient colors into the GPU using ambient color buffer
     var aColorBuffer = gl.createBuffer();
@@ -65,7 +104,7 @@ function _LoadTerrain()
 
     
     // Getting shininess values based on y values
-    var shininessVals = _GetShininessVals(vertices);
+    var shininessVals = _GetShininessVals();
 
     // Loading the shininess values into the GPU using shininess buffer
     var shininessBuffer = gl.createBuffer();
@@ -79,7 +118,7 @@ function _LoadTerrain()
 
     
     // Getting Ks values based on y values
-    var ksVals = _GetKsVals(vertices);
+    var ksVals = _GetKsVals();
 
     // Loading the Ks values into the GPU using Ks buffer
     var ksBuffer = gl.createBuffer();
@@ -91,8 +130,21 @@ function _LoadTerrain()
     gl.vertexAttribPointer(Ks, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(Ks);
 
+
+    // Associating shader program with perspective view from a certain height
+    eye = vec3(radius * Math.sin(theta) * Math.cos(phi), 
+        radius * Math.sin(theta) * Math.sin(phi), radius * Math.cos(theta));
+    
+    modelViewMatrix = lookAt(eye, at, up);
+    modelViewMatrixLoc = gl.getUniformLocation(program, "modelview");
+    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
+    
+    projectionMatrix = perspective(fov, aspect, near, far);
+    projectionMatrixLoc = gl.getUniformLocation(program, "projection");
+    gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
+
     _LoadShadingMode();
-    _LoadPlanePos(); 
+    // _LoadPlanePos(); 
 }
 
 function _LoadShadingMode()
@@ -103,14 +155,14 @@ function _LoadShadingMode()
     gl.enableVertexAttribArray(shadeMode);   
 }
 
-function _LoadPlanePos()
-// Function to associate shader program with shading mode
-{
-    var planePosition = vec3(0.0, 0.0, 1.0); // hard coded for now
-    var planePos = gl.getAttribLocation(program, "planePos");
-    gl.uniform3fv(planePos, planePosition);
-    gl.enableVertexAttribArray(planePos);   
-}
+// function _LoadPlanePos()
+// // Function to associate shader program with plane's position
+// {
+//     var planePosition = vec3(0.0, 0.0, 1.0); // hard coded for now
+//     var planePos = gl.getAttribLocation(program, "planePos");
+//     gl.uniform3fv(planePos, planePosition);
+//     gl.enableVertexAttribArray(planePos);   
+// }
 
 function KeyPressEvent(event)
 // Function that reacts to keys V and C,
@@ -157,7 +209,7 @@ float _Ks(y)
     else return 0.4; // Desert to snow    
 }
 
-function _GetAmbientColors(vertices)
+function _GetAmbientColors()
 // Function to get all ambient colors for the terrain
 {
     var ambientColors = [];
@@ -170,7 +222,7 @@ function _GetAmbientColors(vertices)
     return ambientColors;
 }
 
-function _GetShininessVals(vertices)
+function _GetShininessVals()
 // Function to get all shininess values for the terrain
 {
     var shininessVals = [];
@@ -183,7 +235,7 @@ function _GetShininessVals(vertices)
     return shininessVals;    
 }
 
-function _GetKsVals(vertices)
+function _GetKsVals()
 // Function to get all Ks values for the terrain
 {
     var ksVals = [];
@@ -199,13 +251,15 @@ function _GetKsVals(vertices)
 function _FrameRender()
 // Function to render a single frame
 {
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
     if (viewingMode = 0)
     {
         _Render(gl.POINTS);
     }
     else if (viewingMode = 1)
     {
-        _Render(gl.LINE_LOOP);
+        _Render(gl.LINES);
     }
     else
     {
@@ -216,6 +270,6 @@ function _FrameRender()
 
 function _Render(mode) 
 {   
-    gl.drawArrays(mode, 0, 3);
+    gl.drawArrays(mode, 0, vertices.length);
 }
 
