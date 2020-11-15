@@ -16,8 +16,7 @@ var theta = 55.0;
 var phi = 50;
 var ftrack = 0;
 var fov = 50;
-var offset = 0;
-var acc = 0.0;
+var acc = 0.05;
 var aspect;
 var modelViewMatrix, projectionMatrix;
 var modelViewMatrixLoc, projectionMatrixLoc;
@@ -88,20 +87,19 @@ function get_patch(xmin, xmax, zmin, zmax) {
 		xmin = initialXmin;
 		zmin += size;
 	}
-	for (var i=2; i < vertices.length - 2; i++){
-		vertices[i-2][1] = noise.perlin2(vertices[i-2][0], vertices[i-2][2]);
+	for (var i = 2; i < vertices.length - 2; i++) {
+		vertices[i - 2][1] = noise.perlin2(vertices[i - 2][0], vertices[i - 2][2]);
 	}
 }
 
 
 function render() {
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-	offset += acc;
 	colors = [];
 	//Unomment the block below to trigger the automatic movement
-	// for (var k=0; k<vertices.length; k++){
-	// 	vertices[k][1] = vertices[k][1]+offset;
-	// }
+	for (var k = 0; k < vertices.length; k++) {
+		vertices[k][0] = vertices[k][0] - acc;
+	}
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
 	gl.bufferData(gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW);
