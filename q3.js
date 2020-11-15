@@ -1,8 +1,9 @@
 var gl;
 var program;
-int viewingMode;
-int shadingMode;
+var viewingMode;
+var shadingMode;
 var vertices;
+
 var near = 0.5;
 var far = 250.0;
 var radius = 6.0;
@@ -11,6 +12,10 @@ var phi = 50;
 var fov = 50;
 var acc = 0.05;
 var aspect;
+
+var eye;
+var at = vec3(0.0, 0.0, 0.0);
+var up = vec3(0.0, 1.0, 0.0);
 
 window.onload = function init() 
 // Initialization
@@ -41,41 +46,10 @@ window.onload = function init()
 
     _LoadTerrain();
     _FrameRender();
-
 };
 
-function get_patch(xmin, xmax, zmin, zmax) 
-// Function to generate terrain
-{
-    var size = 0.05;
-    var initialXmin = xmin;
-    noise.seed(9);
-    
-    while (zmin <= zmax) 
-    {
-        while (xmin <= xmax) 
-        {
-            vertices.push(vec3(xmin, 0, zmin));
-            vertices.push(vec3(xmin, 0, zmin + size));
-            vertices.push(vec3(xmin, 0, zmin + size));
-            vertices.push(vec3(xmin + size, 0, zmin));
-            vertices.push(vec3(xmin + size, 0, zmin));
-            vertices.push(vec3(xmin, 0, zmin));
-            xmin += size;
-        }
-        
-        xmin = initialXmin;
-        zmin += size;
-    }
-    
-    for (var i = 2; i < vertices.length - 2; i++) 
-    {
-        vertices[i - 2][1] = noise.perlin2(vertices[i - 2][0], vertices[i - 2][2]);
-    }
-}
-
 function _LoadTerrain()
-// Function to load the terrain onto the GPU
+// Function to generate and load the terrain onto the GPU
 {
     get_patch(-10, 10, -10, 10); // -10 to 10 on both x and z axis 
 
@@ -147,6 +121,36 @@ function _LoadTerrain()
     // _LoadPlanePos(); 
 }
 
+function get_patch(xmin, xmax, zmin, zmax) 
+// Function to generate terrain
+{
+    var size = 0.05;
+    var initialXmin = xmin;
+    noise.seed(9);
+    
+    while (zmin <= zmax) 
+    {
+        while (xmin <= xmax) 
+        {
+            vertices.push(vec3(xmin, 0, zmin));
+            vertices.push(vec3(xmin, 0, zmin + size));
+            vertices.push(vec3(xmin, 0, zmin + size));
+            vertices.push(vec3(xmin + size, 0, zmin));
+            vertices.push(vec3(xmin + size, 0, zmin));
+            vertices.push(vec3(xmin, 0, zmin));
+            xmin += size;
+        }
+        
+        xmin = initialXmin;
+        zmin += size;
+    }
+    
+    for (var i = 2; i < vertices.length - 2; i++) 
+    {
+        vertices[i - 2][1] = noise.perlin2(vertices[i - 2][0], vertices[i - 2][2]);
+    }
+}
+
 function _LoadShadingMode()
 // Function to associate shader program with shading mode
 {
@@ -181,7 +185,7 @@ function KeyPressEvent(event)
     }
 }
 
-vec3 _AmbientColor(y)
+function _AmbientColor(y)
 // Function to get ambient color for a vertex based on its y value 
 {
     if (y < 0.0) return vec3(0.0, 0.8, 1.0); // Water
@@ -193,7 +197,7 @@ vec3 _AmbientColor(y)
     else return (1.0, 1.0, 1,0); // Snow
 }
 
-float _Shininess(y)
+function _Shininess(y)
 // Function to get shininess value for a vertex based on its y value  
 {
     if (y < 0.0) return 80.0; // Water
@@ -201,7 +205,7 @@ float _Shininess(y)
     else return 20.0; // Desert to snow
 }
 
-float _Ks(y)
+function _Ks(y)
 // Function to get Ks value for a vertex based on its y value
 {
     if (y < 0.0) return 1.0; // Water
