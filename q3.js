@@ -253,11 +253,11 @@ function _FrameRender()
 {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    if (viewingMode = 0)
+    if (viewingMode == 0)
     {
         _Render(gl.POINTS);
     }
-    else if (viewingMode = 1)
+    else if (viewingMode == 1)
     {
         _Render(gl.LINES);
     }
