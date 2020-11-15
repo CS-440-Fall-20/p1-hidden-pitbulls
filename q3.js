@@ -32,36 +32,13 @@ window.onload = function init()
     _LoadTerrain();
 };
 
-function _get_patch() 
-{
-    float xmin = -1.0;
-    float xmax = 1.0;
-    float zmin = -1.0;
-    float zmax = 1.0;
-
-    var vertices = [];
-
-    var size = 0.08;
-    var initialXmin = xmin;
-    while (zmin <= zmax) {
-        while (xmin <= xmax) {
-            vertices.push(vec3(xmin, 0, zmin));
-            vertices.push(vec3(xmin, 0, zmin + size));
-            vertices.push(vec3(xmin, 0, zmin + size));
-            vertices.push(vec3(xmin + size, 0, zmin));
-            vertices.push(vec3(xmin + size, 0, zmin));
-            vertices.push(vec3(xmin, 0, zmin));
-            xmin += size;
-        }
-        xmin = initialXmin;
-        zmin += size;
-    }
-}
-
 function _LoadTerrain()
 // Function to load the terrain onto the GPU
 {
-    var vertices = _get_patch();
+    var vertices =
+    [ 
+        // mesh comes here
+    ];
 
     // Loading the vertices into the GPU using vertex buffer
     var vertexBuffer = gl.createBuffer();
@@ -224,20 +201,20 @@ function _FrameRender()
 {
     if (viewingMode = 0)
     {
-        Render(gl.POINTS);
+        _Render(gl.POINTS);
     }
     else if (viewingMode = 1)
     {
-        Render(gl.LINE_LOOP);
+        _Render(gl.LINE_LOOP);
     }
     else
     {
-        Render(gl.TRIANGLES);
+        _Render(gl.TRIANGLES);
     }
 }
 
 
-function Render(mode) 
+function _Render(mode) 
 {   
     gl.drawArrays(mode, 0, 3);
 }
