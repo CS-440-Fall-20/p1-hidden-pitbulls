@@ -65,6 +65,7 @@ function draw() {
 }
 
 function get_patch(xmin, xmax, zmin, zmax) {
+	//Function to generate the terrain from a 2d mesh using perlin noise in the module
 	var size = 0.05;
 	var initialXmin = xmin;
 	noise.seed(9);
