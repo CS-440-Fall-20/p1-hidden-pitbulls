@@ -44,6 +44,9 @@ window.onload = function init()
     viewingMode = 2;
     shadingMode = 2;
 
+    // Initializing vertices
+    vertices = [];
+    
     _LoadTerrain();
     _FrameRender();
 };
@@ -51,7 +54,7 @@ window.onload = function init()
 function _LoadTerrain()
 // Function to generate and load the terrain onto the GPU
 {
-    get_patch(-10, 10, -10, 10); // -10 to 10 on both x and z axis 
+    get_patch(-10.0, 10.0, -10.0, 10.0); // -10 to 10 on both x and z axis 
 
     // Loading the vertices into the GPU using vertex buffer
     var vertexBuffer = gl.createBuffer();
@@ -132,12 +135,12 @@ function get_patch(xmin, xmax, zmin, zmax)
     {
         while (xmin <= xmax) 
         {
-            vertices.push(vec3(xmin, 0, zmin));
-            vertices.push(vec3(xmin, 0, zmin + size));
-            vertices.push(vec3(xmin, 0, zmin + size));
-            vertices.push(vec3(xmin + size, 0, zmin));
-            vertices.push(vec3(xmin + size, 0, zmin));
-            vertices.push(vec3(xmin, 0, zmin));
+            vertices.push(vec3(xmin, 0.0, zmin));
+            vertices.push(vec3(xmin, 0.0, zmin + size));
+            vertices.push(vec3(xmin, 0.0, zmin + size));
+            vertices.push(vec3(xmin + size, 0.0, zmin));
+            vertices.push(vec3(xmin + size, 0.0, zmin));
+            vertices.push(vec3(xmin, 0.0, zmin));
             xmin += size;
         }
         
